@@ -11,35 +11,36 @@ namespace HasherDlaKuby.Controllers
     public class PasswordController : ControllerBase
     {
         private readonly ILogger<PasswordController> _logger;
+        private readonly PasswordHasher<User> _oldHasher;
+        private readonly PasswordHasher<User> _newHasher;
+        private readonly User _user = new User();
 
         public PasswordController(ILogger<PasswordController> logger)
         {
             _logger = logger;
-        }
 
-        [HttpGet]
-        public IEnumerable<string> Get(string password)
-        {
-            var result = new List<string>();
-
-
-            PasswordHasher<User> oldHasher = new PasswordHasher<User>(new OptionsWrapper<PasswordHasherOptions>(
+            _oldHasher = new PasswordHasher<User>(new OptionsWrapper<PasswordHasherOptions>(
                 new PasswordHasherOptions()
                 {
                     CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV2
                 })
             );
 
-            PasswordHasher<User> newHasher = new PasswordHasher<User>(new OptionsWrapper<PasswordHasherOptions>(
+            _newHasher = new PasswordHasher<User>(new OptionsWrapper<PasswordHasherOptions>(
                 new PasswordHasherOptions()
                 {
                     CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3
                 })
             );
+        }
 
+        [HttpGet]
+        public IEnumerable<string> Get(string password)
+        {
+            var result = new List<string>();
             result.Add($"Password: {password}");
-            result.Add($"IdentityV2 hash: {oldHasher.HashPassword(new User(), password)}");
-            result.Add($"IdentityV3 hash: {newHasher.HashPassword(new User(), password)}");
+            result.Add($"IdentityV2 hash: {_oldHasher.HashPassword(_user, password)}");
+            result.Add($"IdentityV3 hash: {_newHasher.HashPassword(_user, password)}");
 
             return result;
         }
